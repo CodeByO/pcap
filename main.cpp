@@ -13,7 +13,7 @@
 
 void* EtherHeader( void* data);
  FILE * fd;
-
+ int i;
 
 void usage() {
   printf("syntax: pcap_test <interface>\n");
@@ -36,29 +36,27 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  do
+  while(i < 10000)
   {
     int res = pcap_next_ex(handle, &header, &packet);
     if (res == 0) continue;
     if (res == -1 || res == -2) break;
-     EtherHeader((void*)packet);
-
-	
-  }while(header->caplen < 100);
-
-  pcap_close(handle);
-  return 0;
+   
+   EtherHeader((void*)packet);
+  i++;
+  }
+    pcap_close(handle);
+    return 0;
 }
 
 void* EtherHeader(void* data)  
 {  
-    fd = fopen("./log.txt", "w");
     struct ether_header* ehP = (struct ether_header *)data;  
       
-    fprintf(fd,"============================================================="  
+    printf("============================================================="  
             "==========\n");  
-    fprintf(fd,"==     SOURCE        ->     Destination\n");  
-    fprintf(fd,"== %02X:%02X:%02X:%02X:%02X:%02X -> %02X:%02X:%02X:%02X:%02X:%02X\n",  
+    printf("==     SOURCE        ->     Destination\n");  
+    printf("== %02X:%02X:%02X:%02X:%02X:%02X -> %02X:%02X:%02X:%02X:%02X:%02X\n",  
             ehP->ether_shost[0],  
             ehP->ether_shost[1],  
             ehP->ether_shost[2],  
@@ -74,23 +72,25 @@ void* EtherHeader(void* data)
               
             );  
   
-    fprintf(fd,"======= Protocol       : ");  
     if(ntohs(ehP->ether_type)==ETHERTYPE_IP)  
-           fprintf(fd,"[IP]\n");  
+    {    
+      printf("======= Protocol       : ");
+      printf("[IP]\n");  
 
-    struct iphdr *iph = (struct iphdr *)(sizeof(struct ether_header)+data);
+      struct iphdr *iph = (struct iphdr *)(sizeof(struct ether_header)+data);
   
-    fprintf(fd,"=============================================================\n");
+      printf("=============================================================\n");
   
-    fprintf(fd,"== Source Address      : %s\n", inet_ntoa(*(in_addr*)&iph->saddr));  
-    fprintf(fd,"== Destination Address : %s\n", inet_ntoa(*(in_addr*)&iph->daddr));  
-    fprintf(fd,"=============================================================\n");  
-
-    struct tcphdr *tcph = (struct tcphdr *)(data+sizeof(struct ether_header)+sizeof(struct iphdr));
-    fprintf(fd, "== SRC Port    :  %d\n", ntohs(tcph->source));
-    fprintf(fd, "== DST Port    :  %d\n", ntohs(tcph->dest));
-    fprintf(fd,"==============================================================\n");
-    return 0;  
-}  
-  
-
+      printf("== Source Address      : %s\n", inet_ntoa(*(in_addr*)&iph->saddr));  
+      printf("== Destination Address : %s\n", inet_ntoa(*(in_addr*)&iph->daddr));  
+      printf("=============================================================\n");  
+    
+     if (iph->protocol == IPPROTO_TCP)
+        {
+  	  struct tcphdr *tcph = (struct tcphdr *)(data+sizeof(struct ether_header)+ sizeof(struct iphdr));
+	  printf( "== SRC Port    :  %d\n", ntohs(tcph->source));
+    	  printf( "== DST Port    :  %d\n", ntohs(tcph->dest));
+    	  printf("==============================================================\n"); 
+}
+} 
+}
