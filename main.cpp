@@ -42,14 +42,14 @@ int main(int argc, char* argv[]) {
     if (res == 0) continue;
     if (res == -1 || res == -2) break;
    
-   EtherHeader((void*)packet);
+   PrintHeader((void*)packet);
   i++;
   }
     pcap_close(handle);
     return 0;
 }
 
-void* EtherHeader(void* data)  
+void* PrintHeader(void* data)  
 {  
     struct ether_header* ehP = (struct ether_header *)data;  
       
